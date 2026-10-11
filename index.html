@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="公的年金の加入履歴・iDeCo・NISA・小規模企業共済・はぐくみ企業年金・付加年金・国債・年金保険をまとめて比較する資産運用シミュレーター">
+<meta name="theme-color" content="#24508F">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="年金シミュ">
+<title>年金・資産運用シミュレーター</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Zen+Old+Mincho:wght@700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* layout: 左は入力の帳票(制度ごとの欄)、右は結果(要点→グラフ→比較表→明細)。900px未満で縦積み */
+:root{
+  --bg:#E7ECEA; --paper:#F8FAF9; --paper2:#EEF2F0; --line:#C8D1CD; --ink:#16212A; --muted:#56656E;
+  --accent:#24508F; --accent-soft:#DCE5F2; --warn:#A6372A; --warn-soft:#F6E2DE; --good:#2D7A4E;
+  --c-pub:#24508F; --c-ideco:#2B8A78; --c-nisa:#C9822A; --c-kyosai:#7B57A8; --c-hagu:#B8527A;
+  --c-bond:#5E7F2F; --c-ins:#94583A; --c-corp:#71808A; --c-save:#7DB89A; --c-contrib:#AAB5BB; --c-tax:#A6372A;
+  --f-disp:"Zen Old Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --f-body:"BIZ UDPGothic","Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10161B; --paper:#172028; --paper2:#1D2831; --line:#2D3B45; --ink:#E3EAE7; --muted:#94A4AC;
+  --accent:#86A9E2; --accent-soft:#22324A; --warn:#E8826F; --warn-soft:#3A2420; --good:#6FC28F;
+  --c-pub:#6F9BE3; --c-ideco:#4FC0AA; --c-nisa:#E3A04B; --c-kyosai:#A887D4; --c-hagu:#DE7FA2;
+  --c-bond:#93B85E; --c-ins:#C9875F; --c-corp:#93A2AC; --c-save:#7FC9A2; --c-contrib:#5D6B73; --c-tax:#E8826F;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10161B; --paper:#172028; --paper2:#1D2831; --line:#2D3B45; --ink:#E3EAE7; --muted:#94A4AC;
+  --accent:#86A9E2; --accent-soft:#22324A; --warn:#E8826F; --warn-soft:#3A2420; --good:#6FC28F;
+  --c-pub:#6F9BE3; --c-ideco:#4FC0AA; --c-nisa:#E3A04B; --c-kyosai:#A887D4; --c-hagu:#DE7FA2;
+  --c-bond:#93B85E; --c-ins:#C9875F; --c-corp:#93A2AC; --c-save:#7FC9A2; --c-contrib:#5D6B73; --c-tax:#E8826F;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.6}
+.wrap{max-width:1440px;margin:0 auto;padding-inline:16px;padding-block:20px 48px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 24px;padding-bottom:14px;border-bottom:2px solid var(--ink);margin-bottom:18px}
+header.top h1{font-family:var(--f-disp);font-size:clamp(22px,3vw,30px);margin:0;letter-spacing:.04em;text-wrap:balance}
+header.top p{margin:0;color:var(--muted);font-size:12.5px}
+.app{display:grid;grid-template-columns:minmax(0,430px) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:900px){.app{grid-template-columns:minmax(0,1fr)}}
+form.inputs{display:flex;flex-direction:column;gap:10px;min-width:0}
+details.sec{background:var(--paper);border:1px solid var(--line);border-radius:6px}
+details.sec>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:11px 14px;font-weight:700}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary .mk{width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);transition:transform .15s;flex:none}
+details.sec[open]>summary .mk{transform:rotate(45deg)}
+summary .ttl{flex:1;min-width:0}
+summary .chip{font-size:11px;font-weight:400;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 8px;white-space:nowrap}
+summary .chip.on{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+summary label.sw{display:flex;align-items:center;gap:4px;font-weight:400;font-size:12px;color:var(--muted)}
+.body{padding:2px 14px 14px;display:flex;flex-direction:column;gap:12px;border-top:1px dashed var(--line)}
+.body.off{opacity:.55}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px;padding-top:10px}
+.f{display:flex;flex-direction:column;gap:3px;min-width:0}
+.f>span{font-size:12px;color:var(--muted)}
+.f .in{display:flex;align-items:center;gap:6px}
+.f .u{font-size:12px;color:var(--muted);white-space:nowrap}
+.f small{font-size:11px;color:var(--muted);line-height:1.4}
+.f.wide{grid-column:1/-1}
+input,select{font:inherit;color:var(--ink);background:var(--paper2);border:1px solid var(--line);border-radius:4px;padding:6px 8px;width:100%;min-width:0}
+input[type=number]{font-family:var(--f-num);font-size:13px;text-align:right}
+input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);padding:0}
+input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.row{border:1px solid var(--line);border-radius:5px;background:var(--paper2);padding:10px;display:flex;flex-direction:column;gap:8px}
+.row .grid{padding-top:0}
+.row .rh{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.row .rh b{font-size:12.5px}
+.row input,.row select{background:var(--paper)}
+.calc{font-size:12px;color:var(--muted);font-family:var(--f-num)}
+button{font:inherit;cursor:pointer;border-radius:4px;border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:6px 12px}
+button.add{border-style:dashed;color:var(--accent);border-color:var(--accent);background:transparent;width:100%}
+button.del{font-size:12px;padding:2px 8px;color:var(--warn);border-color:transparent;background:transparent}
+button.del:hover{border-color:var(--warn)}
+.info{font-size:12.5px;background:var(--accent-soft);border-radius:4px;padding:8px 10px;line-height:1.7}
+.info b{font-family:var(--f-num);font-weight:500}
+table.rates{width:100%;border-collapse:collapse;font-size:12px}
+table.rates td{padding:3px 4px;border-bottom:1px solid var(--line)}
+table.rates td:last-child{text-align:right;font-family:var(--f-num)}
+.results{display:flex;flex-direction:column;gap:16px;min-width:0;position:sticky;top:env(safe-area-inset-top,0px)}
+@media (max-width:900px){.results{position:static}}
+.warn{display:flex;flex-direction:column;gap:4px}
+.warn div{background:var(--warn-soft);color:var(--warn);border-radius:4px;padding:6px 10px;font-size:12.5px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+@media (max-width:640px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--paper);padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi span{font-size:11.5px;color:var(--muted);letter-spacing:.03em}
+.kpi b{font-family:var(--f-num);font-weight:500;font-size:clamp(17px,2vw,22px);font-variant-numeric:tabular-nums;white-space:nowrap}
+.kpi small{font-size:11.5px;color:var(--muted)}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:14px;min-width:0}
+.panel h2,.panel>summary{font-family:var(--f-disp);font-size:17px;margin:0 0 10px;letter-spacing:.03em}
+details.panel>summary{cursor:pointer;margin:0}
+details.panel[open]>summary{margin-bottom:10px}
+.tabs{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap}
+.tabs button{font-size:12.5px;padding:4px 12px;border-radius:999px}
+.tabs button[aria-pressed=true]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.chartbox{position:relative;height:340px}
+.tablewrap{overflow-x:auto}
+table.t{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+table.t th{font-weight:700;text-align:right;color:var(--muted);font-size:11.5px;padding:6px 8px;border-bottom:1.5px solid var(--ink);white-space:nowrap}
+table.t th:first-child,table.t td:first-child{text-align:left}
+table.t td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;font-family:var(--f-num);white-space:nowrap}
+table.t td:first-child{font-family:var(--f-body)}
+table.t td .sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:0}
+table.t td .nt{display:block;font-family:var(--f-body);font-size:11px;color:var(--muted);white-space:normal}
+table.t tr.sum td{font-weight:700;border-top:1.5px solid var(--ink)}
+.neg{color:var(--warn)} .pos{color:var(--good)}
+table.yt td,table.yt th{padding:4px 8px}
+.note{font-size:12px;color:var(--muted);margin:8px 0 0;line-height:1.7}
+.foot{font-size:11.5px;color:var(--muted);line-height:1.8}
+.foot a{color:var(--accent)}
+.bar{display:flex;gap:8px;justify-content:flex-end}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<style>
+html{color-scheme:light}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+header.top .tools{display:flex;gap:6px;flex-wrap:wrap}
+header.top .tools button{font-size:12.5px;padding:5px 10px}
+header.top .tools button.primary{background:var(--accent);color:var(--paper);border-color:var(--accent)}
+.toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:8px 14px;border-radius:6px;font-size:13px;z-index:10}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <h1>年金・資産運用シミュレーター</h1>
+    <p>公的年金・付加年金・iDeCo・NISA・小規模企業共済・はぐくみ企業年金・国債・年金保険を一つの年表で比較 ／ 制度値は2026年10月時点</p>
+    <div class="tools">
+      <button type="button" id="btn-export">入力を保存(JSON)</button>
+      <button type="button" id="btn-import">読み込む</button>
+      <input type="file" id="file-import" accept="application/json,.json" hidden>
+      <button type="button" id="btn-install" class="primary" hidden>アプリとして追加</button>
+    </div>
+    <div class="toast" id="toast" hidden></div>
+  </header>
+  <div class="app">
+    <form class="inputs" id="form" autocomplete="off"></form>
+    <section class="results" aria-live="polite">
+      <div class="warn" id="warn"></div>
+      <div class="kpis" id="kpis"></div>
+      <div class="panel">
+        <div class="tabs" role="group">
+          <button type="button" id="tab-cf" aria-pressed="true">年間キャッシュフロー</button>
+          <button type="button" id="tab-bal" aria-pressed="false">資産残高</button>
+        </div>
+        <div class="chartbox"><canvas id="chart" aria-label="年齢別グラフ"></canvas></div>
+      </div>
+      <div class="panel">
+        <h2>制度別の比較</h2>
+        <div class="tablewrap"><table class="t" id="cmp"></table></div>
+        <p class="note">税メリット＝拠出時の所得税・住民税の軽減＋はぐくみの社会保険料軽減＋NISAの非課税効果(課税口座なら払った税)。受取時の税は、その制度が無い場合との差で計算。年利換算はその制度の正味の現金の出入り(拠出・節税・受取・税)から求めた内部収益率。</p>
+      </div>
+      <details class="panel">
+        <summary>年齢別の明細</summary>
+        <div class="tablewrap"><table class="t yt" id="yt"></table></div>
+      </details>
+      <div class="foot" id="foot"></div>
+    </section>
+  </div>
+</div>
+
+<script src="vendor/chart.umd.js"></script>
+<script id="engine">
+/* ===== 計算エンジン(DOM非依存) ===== */
+const NOW={y:2026,m:10};
+const NOW_IDX=NOW.y*12+NOW.m-1;
+const ATTRS=[['self','第1号:自営業・フリーランス・学生など'],['emp','第2号:会社員(企業年金なし)'],['empdc','第2号:会社員(企業型DC・DBあり)'],['officer','第2号:会社役員'],['civil','第2号:公務員'],['dai3','第3号:会社員・公務員の配偶者']];
+const HIST_TYPES=[['kosei','厚生年金(会社員・公務員)'],['kokumin1','国民年金 第1号(納付)'],['dai3','国民年金 第3号'],['menjo_full','第1号 全額免除'],['menjo_34','第1号 3/4免除'],['menjo_half','第1号 半額免除'],['menjo_14','第1号 1/4免除'],['gakusei','学生納付特例・納付猶予'],['mino','未納']];
+const HIST_W={kosei:1,kokumin1:1,dai3:1,menjo_full:.5,menjo_34:.625,menjo_half:.75,menjo_14:.875,gakusei:0,mino:0};
+const BOND_TYPES={
+  kv10:{label:'個人向け国債 変動10年',rate:2.05,term:10,price:100,cur:'JPY',src:'10月募集 初回利率'},
+  kf5:{label:'個人向け国債 固定5年',rate:2.39,term:5,price:100,cur:'JPY',src:'10月募集'},
+  kf3:{label:'個人向け国債 固定3年',rate:2.07,term:3,price:100,cur:'JPY',src:'10月募集'},
+  s10:{label:'新窓販国債 10年',rate:3.1,term:10,price:100.39,cur:'JPY',src:'10月債'},
+  s5:{label:'新窓販国債 5年',rate:2.2,term:5,price:100.12,cur:'JPY',src:'9月債(10月債は未発表)'},
+  s2:{label:'新窓販国債 2年',rate:2.0,term:2,price:100.14,cur:'JPY',src:'10月債'},
+  jgb:{label:'利付国債(既発債)',rate:1.0,term:10,price:100,cur:'JPY',src:'手入力'},
+  ust:{label:'米国債(既発債)',rate:4.25,term:10,price:98.5,cur:'USD',src:'手入力'}
+};
+const KISO_FULL=70608*12, KISO_FULL_OLD=70408*12, TAX_SEP=0.20315;
+
+function defaults(){return{
+  basic:{birth:'1995-06',attr:'emp',corp:0,retireAge:65,life:95,taxable:3500000,socRet:200000},
+  hist:[
+    {type:'gakusei',from:'2015-06',to:'2018-03',sal:0,fuka:false},
+    {type:'kosei',from:'2018-04',to:'2026-10',sal:300000,fuka:false},
+    {type:'kosei',from:'2026-11',to:'2060-05',sal:420000,fuka:false}],
+  pen:{kisoAge:65,koseiAge:65},
+  ideco:{on:true,initial:600000,monthly:20000,startAge:31,endAge:60,rate:3,recvAge:60,method:'mix',lumpPct:50,years:10},
+  nisa:{on:true,initial:500000,monthly:50000,yearly:0,startAge:31,endAge:60,rate:4,wdAge:65,wdMethod:'period',wdYears:30,wdAmount:1200000,wdRate:4},
+  kyosai:{on:false,monthly:30000,startAge:31,endAge:65,reason:'B',method:'lump',splitYears:10,lumpPct:50},
+  hagu:{on:true,initial:0,monthly:10000,startAge:31,endAge:65,rate:1.5,shaho:15,recvAge:65,method:'lump',years:10},
+  retire:{on:true,amount:10000000,age:65,years:43},
+  bonds:[
+    {type:'kf5',buyYear:2026,redeemYear:2031,face:1000000,rate:2.39,price:100,fxBuy:150,fxEnd:150},
+    {type:'ust',buyYear:2026,redeemYear:2036,face:10000,rate:4.25,price:98.5,fxBuy:150,fxEnd:140}],
+  ins:[{name:'個人年金保険(例)',cur:'JPY',payType:'monthly',premium:10000,payStart:31,payEnd:60,recvType:'annuity',recvStart:65,recvYears:10,recvAmount:400000,fxPay:150,fxRecv:150,deduct:true}]
+};}
+
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const num=v=>Number.isFinite(+v)?+v:0;
+function mIdx(s){if(!s||!/^\d{4}-\d{2}$/.test(s))return NaN;const[y,m]=s.split('-').map(Number);return y*12+m-1;}
+function IT(x){if(x<=0)return 0;const B=[[1950000,.05,0],[3300000,.1,97500],[6950000,.2,427500],[9000000,.23,636000],[18000000,.33,1536000],[40000000,.4,2796000],[Infinity,.45,4796000]];for(const[l,r,d]of B)if(x<=l)return Math.max(0,(x*r-d)*1.021);return 0;}
+function ktKojo(K,age){if(K<=0)return 0;const o=age>=65;let k;
+  if(K<=3300000)k=o?1100000:(K<=1300000?600000:K*.25+275000);
+  else if(K<=4100000)k=K*.25+275000;else if(K<=7700000)k=K*.15+685000;else if(K<=10000000)k=K*.05+1455000;else k=1955000;
+  return Math.max(o?1100000:600000,k);}
+function kojoYears(y){y=Math.ceil(y);if(y<=20)return Math.max(800000,400000*y);return 8000000+700000*(y-20);}
+function kojoRaw(y){if(y<=0)return 0;y=Math.ceil(y);return y<=20?400000*y:8000000+700000*(y-20);}
+function insItD(p){if(p<=0)return 0;if(p<=20000)return p;if(p<=40000)return p/2+10000;if(p<=80000)return p/4+20000;return 40000;}
+function insRtD(p){if(p<=0)return 0;if(p<=12000)return p;if(p<=32000)return p/2+6000;if(p<=56000)return p/4+14000;return 28000;}
+function pmtDue(B,r,n){if(n<=0)return B;if(Math.abs(r)<1e-9)return B/n;return B*r/((1-Math.pow(1+r,-n))*(1+r));}
+function pmt(B,r,n){if(n<=0)return B;if(Math.abs(r)<1e-9)return B/n;return B*r/(1-Math.pow(1+r,-n));}
+function startFactor(age,b){const m=(clamp(age,60,75)-65)*12;if(m<0)return 1+m*(b>=1962*12+3?0.004:0.005);return 1+m*0.007;}
+/* 小規模企業共済:掛金1万円/月あたりの目安(共済金A・B) */
+const KY=[[0,0,0],[60,621400,614600],[120,1290600,1260800],[180,2011000,1940400],[240,2786400,2658800],[360,4348000,4211800]];
+function kyValue(m,col){if(m<6)return 0;for(let k=1;k<KY.length;k++){if(m<=KY[k][0]){const a=KY[k-1],b=KY[k];return a[col+1]+(b[col+1]-a[col+1])*(m-a[0])/(b[0]-a[0]);}}
+  const a=KY[KY.length-2],b=KY[KY.length-1];return b[col+1]+(b[col+1]-a[col+1])/(b[0]-a[0])*(m-b[0]);}
+function kyKaiyaku(m){if(m<12)return 0;if(m<36)return .8;if(m<84)return .85+.05*(m-36)/48;if(m<240)return .9+.1*(m-84)/156;return Math.min(1.2,1+.2*(m-240)/180);}
+const isDai2=a=>['emp','empdc','officer','civil'].includes(a);
+
+function idecoLimit(S){const a=S.basic.attr;
+  const fukaNow=S.hist.some(r=>r.type==='kokumin1'&&r.fuka&&mIdx(r.to)>=NOW_IDX);
+  if(a==='self')return 75000-(fukaNow?1000:0);if(a==='empdc')return Math.max(0,62000-num(S.basic.corp));
+  if(a==='civil')return 54000;if(a==='dai3')return 23000;return 62000;}
+
+function calcPension(S,W){
+  const b=mIdx(S.basic.birth);const seen=new Set();let kisoW=0,koseiM=0,koseiIn=0,hirei=0,fukaM=0,qual=0,overlap=0;const fukaByAge={};
+  for(const r of S.hist){const a=mIdx(r.from),z=mIdx(r.to);if(!Number.isFinite(a)||!Number.isFinite(z)||z<a)continue;
+    for(let m=a;m<=z;m++){if(seen.has(m)){overlap++;continue;}seen.add(m);const am=m-b,in2060=am>=240&&am<720;
+      if(r.type==='kosei'){koseiM++;qual++;hirei+=num(r.sal)*(m<2003*12+3?7.125:5.481)/1000;if(in2060){kisoW+=1;koseiIn++;}}
+      else if(in2060){kisoW+=HIST_W[r.type]||0;if(r.type!=='mino')qual++;
+        if(r.type==='kokumin1'&&r.fuka){fukaM++;const ag=Math.floor(am/12);fukaByAge[ag]=(fukaByAge[ag]||0)+1;}}}}
+  if(overlap>0)W.push(`加入履歴に重なる期間が${overlap}か月あります。重複分は先に書いた行で数えています。`);
+  kisoW=Math.min(480,kisoW);
+  const full=b<=1956*12+2?KISO_FULL_OLD:KISO_FULL;
+  const kiso=full*kisoW/480, keika=full/480*Math.max(0,Math.min(koseiM,480)-koseiIn);
+  let haguRed=0;
+  if(S.hagu.on&&isDai2(S.basic.attr)){const months=Math.max(0,(num(S.hagu.endAge)-num(S.hagu.startAge))*12);haguRed=clamp(num(S.hagu.monthly),0,40000)*5.481/1000*Math.min(months,koseiM);}
+  const ok=qual>=120;if(!ok)W.push(`年金の受給資格期間(10年)に届いていません(現在${qual}か月)。公的年金は0で計算しています。`);
+  const fK=startFactor(num(S.pen.kisoAge),b),fKo=startFactor(num(S.pen.koseiAge),b);
+  return{b,kisoW,koseiM,qual,ok,kiso:ok?kiso:0,keika:ok?keika:0,hirei:ok?hirei:0,fukaM,fukaByAge,fukaAnnual:ok?200*fukaM:0,haguRed:ok?haguRed:0,fK,fKo,full};
+}
+
+const FIELDS=['contrib','ded','insPrem','shaho','kouteki','pubRed','zatsuCash','zatsuTax','ichijiCash','ichijiTax','lumpCash','lumpTax','sepCash','sepTax','freeCash','freeBen','bal'];
+
+function simulate(S){
+  const W=[];const P=calcPension(S,W);const b=P.b;const bY=Math.floor(b/12);
+  const curAge=Math.floor((NOW_IDX-b)/12);
+  const life=clamp(Math.round(num(S.basic.life)),curAge+1,110);
+  let a0=curAge;const mn=v=>{v=Math.floor(num(v));if(Number.isFinite(v))a0=Math.min(a0,v);};
+  if(S.kyosai.on)mn(S.kyosai.startAge);Object.keys(P.fukaByAge).forEach(mn);
+  S.bonds.forEach(x=>mn(num(x.buyYear)-bY));S.ins.forEach(x=>mn(x.payStart));a0=Math.max(15,a0);
+  const n=life-a0+1,ages=Array.from({length:n},(_,i)=>a0+i),I=a=>a-a0,inR=a=>a>=a0&&a<=life;
+  const prods=[],lumps=[];
+  const mk=(key,label,group)=>{const o={key,label,group,note:''};FIELDS.forEach(f=>o[f]=new Array(n).fill(0));prods.push(o);return o;};
+  const attr=S.basic.attr;
+
+  /* 公的年金 */
+  const pub=mk('pub','公的年金(基礎・厚生)','pub');
+  for(let a=Math.max(a0,Math.round(num(S.pen.kisoAge)));a<=life;a++)pub.kouteki[I(a)]+=P.kiso*P.fK;
+  for(let a=Math.max(a0,Math.round(num(S.pen.koseiAge)));a<=life;a++)pub.kouteki[I(a)]+=(P.hirei+P.keika)*P.fKo;
+  pub.note=`基礎 ${P.kisoW.toFixed(1)}/480月・厚生 ${P.koseiM}月`;
+  if(P.fukaM>0){const f=mk('fuka','付加年金','pub');
+    for(const[ag,c]of Object.entries(P.fukaByAge)){if(inR(+ag)){f.contrib[I(+ag)]+=400*c;f.ded[I(+ag)]+=400*c;}}
+    for(let a=Math.max(a0,Math.round(num(S.pen.kisoAge)));a<=life;a++)f.kouteki[I(a)]+=P.fukaAnnual*P.fK;
+    f.note=`${P.fukaM}か月・年${Math.round(P.fukaAnnual*P.fK).toLocaleString()}円`;}
+
+  /* iDeCo */
+  if(S.ideco.on){const d=S.ideco,p=mk('ideco','iDeCo','ideco');const lim=idecoLimit(S);let mon=num(d.monthly);
+    if(mon>lim){W.push(`iDeCoの掛金が上限(月${lim.toLocaleString()}円)を超えています。上限で計算しています。`);mon=lim;}
+    if(mon>0&&mon<5000)W.push('iDeCoの掛金は月5,000円以上です。');
+    let endA=Math.min(num(d.endAge),70);if(num(d.endAge)>70)W.push('iDeCoの拠出は70歳になるまでです。');
+    if(endA>65&&endA>num(S.pen.kisoAge))W.push('65歳以降のiDeCo拠出(第5号)は、老齢基礎年金を受け取り始めると続けられません。');
+    let recv=Math.max(num(d.recvAge),60,endA);if(recv!==num(d.recvAge))W.push(`iDeCoの受取開始は拠出終了後・60歳以降のため${recv}歳で計算しています。`);
+    const r=num(d.rate)/100,start=Math.max(num(d.startAge),curAge),lp=d.method==='lump'?1:d.method==='annuity'?0:clamp(num(d.lumpPct),0,100)/100;
+    const payN=d.method==='lump'?0:clamp(Math.round(num(d.years)),5,20);let bal=num(d.initial),P_=0;
+    for(let a=curAge;a<=life;a++){const i=I(a);
+      if(a>=start&&a<endA&&mon>0){const c=mon*12;bal=bal*(1+r)+c*(1+r/2)-2052;p.contrib[i]+=c;p.ded[i]+=c;}
+      else if(bal>0)bal=bal*(1+r)-792;
+      if(a===recv&&bal>0){const L=bal*lp;bal-=L;if(L>0){p.lumpCash[i]+=L;lumps.push({prod:p,i,age:a,amount:L,from:num(d.startAge),to:endA,kind:'dc'});}P_=pmtDue(bal,r,payN);}
+      if(payN>0&&a>=recv&&a<recv+payN&&bal>0){const w=a===recv+payN-1?bal:Math.min(bal,P_);bal-=w;p.kouteki[i]+=w;}
+      p.bal[i]=Math.max(0,bal);}
+    p.note=`${recv}歳受取・${d.method==='lump'?'一時金':d.method==='annuity'?`年金${payN}年`:`一時金${Math.round(lp*100)}%+年金${payN}年`}`;}
+
+  /* NISA */
+  if(S.nisa.on){const d=S.nisa,p=mk('nisa','NISA','nisa');const r=num(d.rate)/100;let bal=num(d.initial),cost=bal,used=bal,P_=0;
+    if(num(d.monthly)*12>1200000)W.push('NISAつみたて投資枠は年120万円(月10万円)までです。');
+    if(num(d.yearly)>2400000)W.push('NISA成長投資枠は年240万円までです。');
+    const wdA=Math.round(num(d.wdAge)),start=Math.max(num(d.startAge),curAge);let capHit=false;
+    for(let a=curAge;a<=life;a++){const i=I(a);
+      if(a>=start&&a<num(d.endAge)){let c=Math.min(num(d.monthly)*12+num(d.yearly),3600000,Math.max(0,18000000-used));if(c<num(d.monthly)*12+num(d.yearly))capHit=true;bal=bal*(1+r)+c*(1+r/2);cost+=c;used+=c;p.contrib[i]+=c;}
+      else bal*=(1+r);
+      if(a>=wdA&&bal>0){let w=0;
+        if(d.wdMethod==='fixed')w=Math.min(bal,num(d.wdAmount));
+        else if(d.wdMethod==='rate')w=bal*clamp(num(d.wdRate),0,100)/100;
+        else{const N=Math.max(1,Math.round(num(d.wdYears)));if(a===wdA)P_=pmtDue(bal,r,N);if(a<wdA+N)w=a===wdA+N-1?bal:Math.min(bal,P_);}
+        if(w>0){const g=Math.max(0,1-cost/bal);p.freeBen[i]+=w*g*TAX_SEP;cost-=cost*(w/bal);bal-=w;p.freeCash[i]+=w;}}
+      p.bal[i]=Math.max(0,bal);}
+    if(capHit)W.push('NISAの生涯枠(1,800万円)・年間枠(360万円)で積立額を頭打ちにしています。');
+    p.note=`${wdA}歳から${d.wdMethod==='fixed'?'定額':d.wdMethod==='rate'?'定率':`${d.wdYears}年で`}取り崩し`;}
+
+  /* 小規模企業共済 */
+  if(S.kyosai.on){const d=S.kyosai,p=mk('kyosai','小規模企業共済','kyosai');
+    if(!(attr==='self'||attr==='officer'))W.push('小規模企業共済は個人事業主・会社役員などが対象です(現在の属性では加入できません)。');
+    let mon=clamp(num(d.monthly),1000,70000);if(mon!==num(d.monthly))W.push('小規模企業共済の掛金は月1,000〜70,000円です。');
+    const sA=Math.round(num(d.startAge)),eA=Math.round(num(d.endAge)),months=Math.max(0,(eA-sA)*12);let paid=0;
+    for(let a=sA;a<eA;a++){if(!inR(a))continue;const i=I(a);p.contrib[i]+=mon*12;p.ded[i]+=mon*12;paid+=mon*12;p.bal[i]=kyValue((a-sA+1)*12,0)*mon/10000;}
+    let reason=d.reason;if(reason==='B'&&(eA<65||months<180)){W.push('共済金Bは65歳以上・掛金納付180か月以上が条件です。条件外のため任意解約で計算しています。');reason='kaiyaku';}
+    let amt=reason==='A'?kyValue(months,0)*mon/10000:reason==='B'?kyValue(months,1)*mon/10000:paid*kyKaiyaku(months);
+    if(reason==='kaiyaku'&&months<240)W.push(`小規模企業共済の任意解約は納付20年未満だと元本割れします(受取率約${Math.round(kyKaiyaku(months)*100)}%)。`);
+    if(inR(eA)&&amt>0){const i0=I(eA);
+      if(reason==='kaiyaku'&&eA<65){p.ichijiCash[i0]+=amt;p.ichijiTax[i0]+=Math.max(0,amt-500000)/2;}
+      else{let lpct=d.method==='lump'?1:d.method==='split'?0:clamp(num(d.lumpPct),0,100)/100;const Y=+d.splitYears===15?15:10;
+        if(reason==='kaiyaku')lpct=1;
+        if(lpct<1&&amt*(1-lpct)<(Y===15?3600000:3000000)){W.push(`共済金の分割受取(${Y}年)は分割部分が${Y===15?360:300}万円以上必要です。一括で計算しています。`);lpct=1;}
+        const L=amt*lpct;if(L>0){p.lumpCash[i0]+=L;lumps.push({prod:p,i:i0,age:eA,amount:L,from:sA,to:eA,kind:'kyosai'});}
+        const rest=amt-L;if(rest>0){const pay=pmt(rest,0.01,Y)/4*4;let rem=pay*Y;for(let k=0;k<Y;k++){const a=eA+k;if(!inR(a))break;p.kouteki[I(a)]+=pay;rem-=pay;p.bal[I(a)]=Math.max(0,rem);}}}}
+    p.note=`${months}か月・${reason==='A'?'共済金A':reason==='B'?'共済金B':'任意解約'}`;}
+
+  /* はぐくみ企業年金 */
+  if(S.hagu.on){const d=S.hagu,p=mk('hagu','はぐくみ企業年金','hagu');
+    if(!isDai2(attr)||attr==='civil')W.push('はぐくみ企業年金は加入事業所の会社員・役員が対象です。');
+    let mon=clamp(num(d.monthly),1000,40000);if(mon!==num(d.monthly))W.push('はぐくみ企業年金の掛金は月1,000〜40,000円です。');
+    const r=num(d.rate)/100,start=Math.max(num(d.startAge),curAge),endA=num(d.endAge);const recv=Math.max(num(d.recvAge),endA);
+    const N=d.method==='annuity'?Math.max(1,Math.round(num(d.years))):0;let bal=num(d.initial),P_=0;
+    for(let a=curAge;a<=life;a++){const i=I(a);
+      if(a>=start&&a<endA){const c=mon*12;bal=bal*(1+r)+c*(1+r/2);p.contrib[i]+=c;p.ded[i]+=c;p.shaho[i]+=c*clamp(num(d.shaho),0,30)/100;}
+      else if(bal>0)bal*=(1+r);
+      if(a===recv&&bal>0){if(N===0){p.lumpCash[i]+=bal;lumps.push({prod:p,i,age:a,amount:bal,from:num(d.startAge),to:endA,kind:'db'});bal=0;}else P_=pmtDue(bal,r,N);}
+      if(N>0&&a>=recv&&a<recv+N&&bal>0){const w=a===recv+N-1?bal:Math.min(bal,P_);bal-=w;p.kouteki[i]+=w;}
+      p.bal[i]=Math.max(0,bal);}
+    for(let a=Math.max(a0,Math.round(num(S.pen.koseiAge)));a<=life;a++){const v=P.haguRed*P.fKo;p.kouteki[I(a)]-=v;p.pubRed[I(a)]-=v;}
+    p.note=`${recv}歳${N?`から年金${N}年`:'に一時金'}・厚生年金 年${Math.round(P.haguRed*P.fKo/1000)}千円減を含む`;}
+
+  /* 会社の退職金 */
+  if(S.retire.on&&num(S.retire.amount)>0){const d=S.retire,p=mk('corp','会社の退職金','corp');const a=Math.round(num(d.age));
+    if(inR(a)){p.lumpCash[I(a)]+=num(d.amount);lumps.push({prod:p,i:I(a),age:a,amount:num(d.amount),from:a-num(d.years),to:a,kind:'corp'});}
+    p.note=`${a}歳・勤続${d.years}年`;}
+
+  /* 国債 */
+  S.bonds.forEach((x,k)=>{const t=BOND_TYPES[x.type]||BOND_TYPES.jgb,usd=t.cur==='USD';const p=mk('bond'+k,`${t.label}`,'bond');
+    const bA=Math.round(num(x.buyYear))-bY,eA=Math.round(num(x.redeemYear))-bY,yrs=eA-bA;
+    if(yrs<=0){W.push(`国債${k+1}:償還年は購入年より後にしてください。`);return;}
+    const fx=a=>usd?num(x.fxBuy)+(num(x.fxEnd)-num(x.fxBuy))*(a-bA)/yrs:1;
+    const cost=num(x.face)*num(x.price)/100*fx(bA);if(inR(bA))p.contrib[I(bA)]+=cost;
+    for(let a=bA+1;a<=eA;a++){if(!inR(a))continue;const c=num(x.face)*num(x.rate)/100*fx(a);p.sepCash[I(a)]+=c;p.sepTax[I(a)]+=c*TAX_SEP;}
+    if(inR(eA)){const red=num(x.face)*fx(eA);p.sepCash[I(eA)]+=red;const g=red-cost;if(g>0)p.sepTax[I(eA)]+=g*TAX_SEP;}
+    for(let a=bA;a<eA;a++)if(inR(a))p.bal[I(a)]=cost;
+    p.note=`${x.buyYear}→${x.redeemYear}年・利率${x.rate}%${usd?`・${x.fxBuy}→${x.fxEnd}円/ドル`:''}`;});
+
+  /* 年金保険 */
+  S.ins.forEach((x,k)=>{const usd=x.cur==='USD',p=mk('ins'+k,x.name||`年金保険${k+1}`,'ins');
+    const pS=Math.round(num(x.payStart)),pE=Math.round(num(x.payEnd)),rS=Math.round(num(x.recvStart)),N=x.recvType==='lump'?1:Math.max(1,Math.round(num(x.recvYears)));
+    const fx=a=>{if(!usd)return 1;if(a>=rS)return num(x.fxRecv);const span=Math.max(1,rS-pS);return num(x.fxPay)+(num(x.fxRecv)-num(x.fxPay))*clamp((a-pS)/span,0,1);};
+    let prem=0;const premAt=a=>x.payType==='lump'?(a===pS?num(x.premium):0):(a>=pS&&a<pE?num(x.premium)*12:0);
+    const lastPay=x.payType==='lump'?pS:pE-1;
+    for(let a=pS;a<=lastPay;a++){const v=premAt(a)*fx(a);prem+=v;if(inR(a)){p.contrib[I(a)]+=v;if(x.deduct)p.insPrem[I(a)]+=v;}}
+    if(rS<=lastPay)W.push(`${p.label}:受取開始は払込終了後にしてください。`);
+    const recvTot=num(x.recvAmount)*fx(rS)*N;let cum=0;
+    for(let a=pS;a<rS;a++){cum+=premAt(a)*fx(a);if(inR(a))p.bal[I(a)]=cum;}
+    let rem=recvTot;
+    for(let j=0;j<N;j++){const a=rS+j;if(!inR(a))break;const v=num(x.recvAmount)*fx(a);rem-=v;p.bal[I(a)]=Math.max(0,rem);
+      if(x.recvType==='lump'){p.ichijiCash[I(a)]+=v;p.ichijiTax[I(a)]+=Math.max(0,v-prem-500000)/2;}
+      else{p.zatsuCash[I(a)]+=v;p.zatsuTax[I(a)]+=Math.max(0,v-v*(recvTot>0?prem/recvTot:0));}}
+    p.note=`返戻率 ${prem>0?Math.round(recvTot/prem*1000)/10:0}%・${rS}歳から${x.recvType==='lump'?'一括':N+'年'}`;});
+
+  /* 退職所得(一時金)の課税:同年は合算、前後の受取は重複期間を控除から差し引く */
+  const groups={};lumps.forEach(L=>{(groups[L.age]=groups[L.age]||[]).push(L);});
+  const union=iv=>{const s=iv.map(v=>[Math.min(v[0],v[1]),Math.max(v[0],v[1])]).sort((a,b)=>a[0]-b[0]);const o=[];for(const v of s){if(o.length&&v[0]<=o[o.length-1][1])o[o.length-1][1]=Math.max(o[o.length-1][1],v[1]);else o.push([...v]);}return o;};
+  const len=u=>u.reduce((s,v)=>s+v[1]-v[0],0);
+  const inter=(u1,u2)=>{let s=0;for(const a of u1)for(const b of u2)s+=Math.max(0,Math.min(a[1],b[1])-Math.max(a[0],b[0]));return s;};
+  const done=[];
+  Object.keys(groups).map(Number).sort((a,b)=>a-b).forEach(age=>{const g=groups[age];const amt=g.reduce((s,L)=>s+L.amount,0);
+    const u=union(g.map(L=>[L.from,L.to]));let kj=kojoYears(Math.max(1,len(u)));const hasDC=g.some(L=>L.kind==='dc');
+    for(const pg of done){const gap=age-pg.age,pDC=pg.kinds.includes('dc');const win=hasDC?9:pDC?19:4;
+      if(gap<=win){const ov=inter(u,pg.u);if(ov>0){kj-=kojoRaw(ov);if(!W.some(w=>w.startsWith('退職一時金')))W.push(`退職一時金を受け取る時期が近いため(${pg.age}歳と${age}歳)、退職所得控除を重複期間分減らしています。`);}}}
+    kj=Math.max(0,kj);const tx=Math.floor(Math.max(0,amt-kj)/2/1000)*1000;const tax=IT(tx)+tx*0.1;
+    g.forEach(L=>{L.prod.lumpTax[L.i]+=tax*L.amount/amt;});done.push({age,u,kinds:g.map(L=>L.kind)});});
+
+  /* 年ごとの所得税・住民税(制度による増減) */
+  const B=S.basic;
+  function yearTax(i,ex){let D=0,ip=0,K=0,Z=0;for(const p of prods){if(ex===p.key)continue;D+=p.ded[i];ip+=p.insPrem[i];K+=p.kouteki[i];Z+=p.zatsuTax[i]+p.ichijiTax[i];}
+    const a=ages[i],work=a<num(B.retireAge),bI=work?num(B.taxable):-(580000+num(B.socRet)),bR=work?num(B.taxable):-(430000+num(B.socRet));
+    K=Math.max(0,K);const zk=Math.max(0,K-ktKojo(K,a)),dI=D+insItD(ip),dR=D+insRtD(ip);
+    const f=inc=>IT(Math.max(0,bI+inc-dI))-IT(Math.max(0,bI))+0.1*(Math.max(0,bR+inc-dR)-Math.max(0,bR));
+    return{save:-f(0),net:f(zk+Z)};}
+  const all=ages.map((_,i)=>yearTax(i,null));
+  prods.forEach(p=>{p.save=new Array(n).fill(0);p.rtax=new Array(n).fill(0);
+    for(let i=0;i<n;i++){const e=yearTax(i,p.key);p.save[i]=all[i].save-e.save;p.rtax[i]=(all[i].net-e.net)+p.save[i];}});
+
+  /* 集計 */
+  const gross=p=>i=>p.kouteki[i]+p.zatsuCash[i]+p.ichijiCash[i]+p.lumpCash[i]+p.sepCash[i]+p.freeCash[i];
+  const sumA=a=>a.reduce((s,v)=>s+v,0);
+  const rows=prods.map(p=>{const G=gross(p);const flows=ages.map((_,i)=>-p.contrib[i]+p.save[i]+p.shaho[i]+G(i)-p.rtax[i]-p.lumpTax[i]-p.sepTax[i]);
+    const contrib=sumA(p.contrib),benefit=sumA(p.save)+sumA(p.shaho)+sumA(p.freeBen),grossT=ages.reduce((s,_,i)=>s+G(i),0),rtax=sumA(p.rtax)+sumA(p.lumpTax)+sumA(p.sepTax);
+    return{key:p.key,label:p.label,group:p.group,note:p.note,contrib,benefit,gross:grossT,rtax,net:sumA(flows),irr:contrib>0?irr(flows):null};});
+  const yr=ages.map((a,i)=>{let c=0,g=0,lt=0,sh=0,bal=0;prods.forEach(p=>{c+=p.contrib[i];g+=gross(p)(i);lt+=p.lumpTax[i]+p.sepTax[i];sh+=p.shaho[i];bal+=p.bal[i];});
+    const tax=all[i].net+lt;return{age:a,year:bY+a,contrib:c,gross:g,tax,save:all[i].save+sh,rtax:all[i].net+all[i].save+lt,shaho:sh,cf:g-c-tax+sh,bal};});
+  return{ages,bY,curAge,life,prods,rows,yr,P,W,all,gross};
+}
+function irr(fl){if(!fl.some(v=>v<0)||!fl.some(v=>v>0))return null;const npv=r=>fl.reduce((s,v,t)=>s+v/Math.pow(1+r,t),0);
+  let lo=-0.95,hi=1.0,fl0=npv(lo),fh=npv(hi);if(fl0*fh>0)return null;for(let k=0;k<100;k++){const m=(lo+hi)/2,fm=npv(m);if(fl0*fm<=0){hi=m;fh=fm;}else{lo=m;fl0=fm;}}return(lo+hi)/2;}
+</script>
+<script>
+/* ===== 画面 ===== */
+const LS='nenkin-sim-v1';
+function load(){const d=defaults();try{const s=JSON.parse(localStorage.getItem(LS)||'null');if(!s)return d;
+  for(const k of Object.keys(d)){if(Array.isArray(d[k]))d[k]=Array.isArray(s[k])?s[k]:d[k];else d[k]=Object.assign({},d[k],s[k]||{});}return d;}catch(e){return d;}}
+let S=load();
+function save(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
+const getP=(o,p)=>p.split('.').reduce((a,k)=>a==null?a:a[k],o);
+function setP(o,p,v){const ks=p.split('.');let a=o;for(let i=0;i<ks.length-1;i++)a=a[ks[i]];a[ks[ks.length-1]]=v;}
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const opts=(o,v)=>o.map(([k,l])=>`<option value="${k}"${k===v?' selected':''}>${esc(l)}</option>`).join('');
+function fld(f,s){if(f.show&&!f.show(s))return'';const v=getP(s,f.p),id='f_'+f.p.replace(/\./g,'_');let ctl;
+  if(f.t==='sel')ctl=`<select id="${id}" data-p="${f.p}" data-t="str">${opts(f.o,String(v))}</select>`;
+  else if(f.t==='month')ctl=`<input id="${id}" type="month" data-p="${f.p}" data-t="str" value="${esc(v)}">`;
+  else if(f.t==='txt')ctl=`<input id="${id}" type="text" data-p="${f.p}" data-t="str" value="${esc(v)}">`;
+  else if(f.t==='chk')return`<label class="f ${f.w?'wide':''}" style="flex-direction:row;align-items:center;gap:8px"><input id="${id}" type="checkbox" data-p="${f.p}" data-t="chk"${v?' checked':''}><span>${f.l}</span></label>`;
+  else ctl=`<input id="${id}" type="number" inputmode="decimal" data-p="${f.p}" data-t="num" value="${esc(v)}" step="${f.step||1}"${f.min!=null?` min="${f.min}"`:''}${f.max!=null?` max="${f.max}"`:''}>`;
+  return`<label class="f ${f.w?'wide':''}" for="${id}"><span>${f.l}</span><div class="in">${ctl}${f.u?`<span class="u">${f.u}</span>`:''}</div>${f.h?`<small>${f.h}</small>`:''}</label>`;}
+const yen={t:'num',u:'円',step:1000};
+
+const SCHEMA=[
+ {id:'basic',title:'基本情報',fields:[
+  {p:'basic.birth',l:'生年月',t:'month'},
+  {p:'basic.attr',l:'現在の属性',t:'sel',o:ATTRS,w:1},
+  {p:'basic.corp',l:'会社の企業型DC等の掛金(月)',...yen,show:s=>s.basic.attr==='empdc',h:'iDeCo上限=6.2万円−この額'},
+  {p:'basic.retireAge',l:'就労終了年齢',t:'num',u:'歳',h:'この年齢まで給与・事業所得あり'},
+  {p:'basic.life',l:'想定寿命',t:'num',u:'歳'},
+  {p:'basic.taxable',l:'現在の課税所得',t:'num',u:'円',step:10000,h:'iDeCo等の控除を引く前の額。第3号なら0'},
+  {p:'basic.socRet',l:'老後の社会保険料(年)',t:'num',u:'円',step:10000,h:'国保・介護保険料の目安。控除に使う'}]},
+ {id:'pension',title:'公的年金・付加年金',custom:'hist',fields:[
+  {p:'pen.kisoAge',l:'老齢基礎年金の受給開始',t:'num',u:'歳',min:60,max:75,h:'60〜64歳は月0.4%減、66〜75歳は月0.7%増'},
+  {p:'pen.koseiAge',l:'老齢厚生年金の受給開始',t:'num',u:'歳',min:60,max:75}]},
+ {id:'ideco',title:'iDeCo',toggle:'ideco.on',fields:[
+  {p:'ideco.initial',l:'現在の残高',...yen},
+  {p:'ideco.monthly',l:'掛金(月)',...yen,h:''},
+  {p:'ideco.startAge',l:'拠出開始年齢',t:'num',u:'歳'},
+  {p:'ideco.endAge',l:'拠出終了年齢',t:'num',u:'歳',max:70,h:'2027年1月から70歳まで可'},
+  {p:'ideco.rate',l:'想定利回り(年)',t:'num',u:'%',step:.1},
+  {p:'ideco.recvAge',l:'受取開始年齢',t:'num',u:'歳',min:60,max:75},
+  {p:'ideco.method',l:'受取方法',t:'sel',o:[['lump','一時金'],['annuity','年金'],['mix','併用']]},
+  {p:'ideco.lumpPct',l:'一時金の割合',t:'num',u:'%',show:s=>s.ideco.method==='mix'},
+  {p:'ideco.years',l:'年金の受取期間',t:'num',u:'年',min:5,max:20,show:s=>s.ideco.method!=='lump'}]},
+ {id:'nisa',title:'NISA',toggle:'nisa.on',fields:[
+  {p:'nisa.initial',l:'現在の評価額',...yen},
+  {p:'nisa.monthly',l:'つみたて投資枠(月)',...yen},
+  {p:'nisa.yearly',l:'成長投資枠(年)',t:'num',u:'円',step:10000},
+  {p:'nisa.rate',l:'想定利回り(年)',t:'num',u:'%',step:.1},
+  {p:'nisa.startAge',l:'積立開始年齢',t:'num',u:'歳'},
+  {p:'nisa.endAge',l:'積立終了年齢',t:'num',u:'歳'},
+  {p:'nisa.wdAge',l:'取り崩し開始年齢',t:'num',u:'歳'},
+  {p:'nisa.wdMethod',l:'取り崩し方法',t:'sel',o:[['period','期間で使い切る'],['fixed','定額'],['rate','定率']]},
+  {p:'nisa.wdYears',l:'取り崩し期間',t:'num',u:'年',show:s=>s.nisa.wdMethod==='period'},
+  {p:'nisa.wdAmount',l:'取り崩し額(年)',t:'num',u:'円',step:10000,show:s=>s.nisa.wdMethod==='fixed'},
+  {p:'nisa.wdRate',l:'取り崩し率(年)',t:'num',u:'%',step:.1,show:s=>s.nisa.wdMethod==='rate'}]},
+ {id:'kyosai',title:'小規模企業共済',toggle:'kyosai.on',fields:[
+  {p:'kyosai.monthly',l:'掛金(月)',...yen,h:'1,000〜70,000円'},
+  {p:'kyosai.startAge',l:'加入年齢',t:'num',u:'歳'},
+  {p:'kyosai.endAge',l:'受取(廃業・解約)年齢',t:'num',u:'歳'},
+  {p:'kyosai.reason',l:'受取事由',t:'sel',o:[['A','共済金A(廃業・死亡)'],['B','共済金B(65歳以上・15年以上)'],['kaiyaku','任意解約']]},
+  {p:'kyosai.method',l:'受取方法',t:'sel',o:[['lump','一括'],['split','分割'],['mix','一括と分割の併用']],show:s=>s.kyosai.reason!=='kaiyaku'},
+  {p:'kyosai.splitYears',l:'分割期間',t:'sel',o:[['10','10年'],['15','15年']],show:s=>s.kyosai.reason!=='kaiyaku'&&s.kyosai.method!=='lump'},
+  {p:'kyosai.lumpPct',l:'一括の割合',t:'num',u:'%',show:s=>s.kyosai.reason!=='kaiyaku'&&s.kyosai.method==='mix'}]},
+ {id:'hagu',title:'はぐくみ企業年金',toggle:'hagu.on',fields:[
+  {p:'hagu.initial',l:'現在の積立額',...yen},
+  {p:'hagu.monthly',l:'掛金(月・給与から選択)',...yen,h:'1,000〜40,000円'},
+  {p:'hagu.startAge',l:'加入年齢',t:'num',u:'歳'},
+  {p:'hagu.endAge',l:'拠出終了(退職)年齢',t:'num',u:'歳'},
+  {p:'hagu.rate',l:'予定利率(年)',t:'num',u:'%',step:.1,h:'規約により異なる。仮置き'},
+  {p:'hagu.shaho',l:'社会保険料率(本人分)',t:'num',u:'%',step:.1,h:'給与が減る分の保険料軽減'},
+  {p:'hagu.recvAge',l:'受取年齢',t:'num',u:'歳'},
+  {p:'hagu.method',l:'受取方法',t:'sel',o:[['lump','一時金'],['annuity','年金']]},
+  {p:'hagu.years',l:'年金の受取期間',t:'num',u:'年',show:s=>s.hagu.method==='annuity'}]},
+ {id:'retire',title:'会社の退職金',toggle:'retire.on',fields:[
+  {p:'retire.amount',l:'退職金(一時金)',t:'num',u:'円',step:100000},
+  {p:'retire.age',l:'受取年齢',t:'num',u:'歳'},
+  {p:'retire.years',l:'勤続年数',t:'num',u:'年',h:'iDeCo一時金との退職所得控除の調整に使う'}]},
+ {id:'bonds',title:'国債',custom:'bonds',fields:[]},
+ {id:'ins',title:'年金保険',custom:'ins',fields:[]}
+];
+const openSet=new Set(['basic','pension']);
+
+function histHTML(){return S.hist.map((r,i)=>`<div class="row"><div class="rh"><b>加入履歴 ${i+1}</b><button type="button" class="del" data-act="del-hist" data-i="${i}">削除</button></div><div class="grid">
+  ${fld({p:`hist.${i}.type`,l:'種別',t:'sel',o:HIST_TYPES,w:1},S)}
+  ${fld({p:`hist.${i}.from`,l:'開始(年月)',t:'month'},S)}
+  ${fld({p:`hist.${i}.to`,l:'終了(年月)',t:'month'},S)}
+  ${r.type==='kosei'?fld({p:`hist.${i}.sal`,l:'平均標準報酬額(月・賞与込み)',t:'num',u:'円',step:1000,w:1,h:'2003年3月以前は賞与を除く平均標準報酬月額'},S):''}
+  ${r.type==='kokumin1'?fld({p:`hist.${i}.fuka`,l:'付加保険料(月400円)を納付',t:'chk',w:1},S):''}
+ </div></div>`).join('')+`<button type="button" class="add" data-act="add-hist">＋ 加入履歴を追加</button><div class="info" id="penInfo"></div>`;}
+
+function bondsHTML(){const rt=Object.entries(BOND_TYPES).filter(([k])=>!['jgb','ust'].includes(k)).map(([k,t])=>`<tr><td>${t.label}<br><span style="color:var(--muted)">${t.src}${t.price!==100?`・単価${t.price}円`:''}</span></td><td>${t.rate.toFixed(2)}%</td></tr>`).join('');
+ return`<table class="rates" aria-label="最新の国債利率">${rt}</table><small class="note" style="margin:0">財務省発表(2026年10月7日ほか)。種別を選ぶとこの利率が入ります。</small>`+
+ S.bonds.map((x,i)=>{const t=BOND_TYPES[x.type]||BOND_TYPES.jgb,usd=t.cur==='USD',yrs=num(x.redeemYear)-num(x.buyYear);
+  const y=yrs>0?(num(x.rate)+(100-num(x.price))/yrs)/num(x.price)*100:0;
+  return`<div class="row"><div class="rh"><b>国債 ${i+1}</b><button type="button" class="del" data-act="del-bond" data-i="${i}">削除</button></div><div class="grid">
+  ${fld({p:`bonds.${i}.type`,l:'種別',t:'sel',o:Object.entries(BOND_TYPES).map(([k,v])=>[k,v.label]),w:1},S)}
+  ${fld({p:`bonds.${i}.buyYear`,l:'購入年',t:'num',u:'年'},S)}
+  ${fld({p:`bonds.${i}.redeemYear`,l:'償還年',t:'num',u:'年'},S)}
+  ${fld({p:`bonds.${i}.face`,l:'額面',t:'num',u:usd?'ドル':'円',step:usd?100:10000},S)}
+  ${fld({p:`bonds.${i}.rate`,l:x.type==='kv10'?'利率(想定平均)':'利率(年)',t:'num',u:'%',step:.01},S)}
+  ${fld({p:`bonds.${i}.price`,l:'購入単価(額面100あたり)',t:'num',step:.01},S)}
+  ${usd?fld({p:`bonds.${i}.fxBuy`,l:'購入時レート',t:'num',u:'円/ドル',step:.1},S)+fld({p:`bonds.${i}.fxEnd`,l:'償還時の想定レート',t:'num',u:'円/ドル',step:.1},S):''}
+ </div><div class="calc">最終利回り(単利・税引前) ${y.toFixed(3)}%</div></div>`;}).join('')+`<button type="button" class="add" data-act="add-bond">＋ 国債を追加</button>`;}
+
+function insHTML(){return S.ins.map((x,i)=>{const usd=x.cur==='USD',lump=x.payType==='lump';
+  return`<div class="row"><div class="rh"><b>年金保険 ${i+1}</b><button type="button" class="del" data-act="del-ins" data-i="${i}">削除</button></div><div class="grid">
+  ${fld({p:`ins.${i}.name`,l:'名称',t:'txt',w:1},S)}
+  ${fld({p:`ins.${i}.cur`,l:'通貨',t:'sel',o:[['JPY','円建て'],['USD','米ドル建て']]},S)}
+  ${fld({p:`ins.${i}.payType`,l:'払込方法',t:'sel',o:[['monthly','月払'],['lump','一時払']]},S)}
+  ${fld({p:`ins.${i}.premium`,l:lump?'一時払保険料':'保険料(月)',t:'num',u:usd?'ドル':'円',step:usd?10:1000},S)}
+  ${fld({p:`ins.${i}.payStart`,l:lump?'払込年齢':'払込開始年齢',t:'num',u:'歳'},S)}
+  ${lump?'':fld({p:`ins.${i}.payEnd`,l:'払込終了年齢',t:'num',u:'歳'},S)}
+  ${fld({p:`ins.${i}.recvType`,l:'受取方法',t:'sel',o:[['annuity','年金'],['lump','一括(満期)']]},S)}
+  ${fld({p:`ins.${i}.recvStart`,l:'受取開始年齢',t:'num',u:'歳'},S)}
+  ${x.recvType==='lump'?'':fld({p:`ins.${i}.recvYears`,l:'受取期間',t:'num',u:'年'},S)}
+  ${fld({p:`ins.${i}.recvAmount`,l:x.recvType==='lump'?'受取額':'年金額(年)',t:'num',u:usd?'ドル':'円',step:usd?100:10000},S)}
+  ${usd?fld({p:`ins.${i}.fxPay`,l:'払込時レート',t:'num',u:'円/ドル',step:.1},S)+fld({p:`ins.${i}.fxRecv`,l:'受取時の想定レート',t:'num',u:'円/ドル',step:.1},S):''}
+  ${fld({p:`ins.${i}.deduct`,l:'生命保険料控除(個人年金)を使う',t:'chk',w:1},S)}
+ </div></div>`;}).join('')+`<button type="button" class="add" data-act="add-ins">＋ 年金保険を追加</button>`;}
+
+function renderForm(){const sy=window.scrollY;const form=document.getElementById('form');
+ form.innerHTML=SCHEMA.map(sec=>{const on=sec.toggle?!!getP(S,sec.toggle):true;
+  const chip=sec.toggle?`<label class="sw" onclick="event.stopPropagation()"><input type="checkbox" data-p="${sec.toggle}" data-t="chk"${on?' checked':''}>使う</label>`:
+   sec.custom==='bonds'?`<span class="chip${S.bonds.length?' on':''}">${S.bonds.length}件</span>`:sec.custom==='ins'?`<span class="chip${S.ins.length?' on':''}">${S.ins.length}件</span>`:'';
+  const custom=sec.custom==='hist'?histHTML():sec.custom==='bonds'?bondsHTML():sec.custom==='ins'?insHTML():'';
+  const extra=sec.id==='ideco'?`<div class="info">あなたの上限:月 <b>${idecoLimit(S).toLocaleString()}</b> 円(2026年12月分〜の新上限)</div>`:'';
+  return`<details class="sec" data-id="${sec.id}"${openSet.has(sec.id)?' open':''}><summary><span class="mk"></span><span class="ttl">${sec.title}</span>${chip}</summary>
+  <div class="body${on?'':' off'}">${custom}${sec.fields.length?`<div class="grid">${sec.fields.map(f=>fld(f,S)).join('')}</div>`:''}${extra}</div></details>`;}).join('')+
+  `<div class="bar"><button type="button" data-act="reset">例の値に戻す</button></div>`;
+ form.querySelectorAll('details.sec').forEach(d=>d.addEventListener('toggle',()=>{d.open?openSet.add(d.dataset.id):openSet.delete(d.dataset.id);}));
+ window.scrollTo(0,sy);}
+
+/* ---- 結果 ---- */
+const man=v=>{const a=Math.abs(v)/10000;const s=a>=100?Math.round(a).toLocaleString():a.toFixed(1);return(v<-5?'−':'')+s+'万円';};
+const manN=v=>{const a=v/10000;return Math.abs(a)>=100?Math.round(a).toLocaleString():a.toFixed(1);};
+const GROUPS=[['pub','公的年金','--c-pub'],['ideco','iDeCo','--c-ideco'],['nisa','NISA','--c-nisa'],['kyosai','小規模企業共済','--c-kyosai'],['hagu','はぐくみ','--c-hagu'],['bond','国債','--c-bond'],['ins','年金保険','--c-ins'],['corp','退職金','--c-corp']];
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+let R=null,chart=null,tab='cf';
+
+function recompute(){R=simulate(S);save();
+ const P=R.P;penInfo();
+ document.getElementById('warn').innerHTML=R.W.map(w=>`<div>${esc(w)}</div>`).join('');
+ const pubA=(P.kiso+P.fukaAnnual)*P.fK+(P.hirei-P.haguRed+P.keika)*P.fKo;
+ const ret=R.yr.filter(y=>y.age>=Math.max(num(S.basic.retireAge),Math.min(num(S.pen.kisoAge),num(S.pen.koseiAge))));
+ const avg=ret.length?ret.reduce((s,y)=>s+y.cf,0)/ret.length:0;
+ const tc=R.rows.reduce((s,r)=>s+r.contrib,0),tb=R.rows.reduce((s,r)=>s+r.benefit,0);
+ let pk=R.yr[0]||{bal:0,age:0};R.yr.forEach(y=>{if(y.bal>pk.bal)pk=y;});
+ document.getElementById('kpis').innerHTML=[
+  ['公的年金(年額・税引前)',man(pubA),`月 ${Math.round(pubA/12).toLocaleString()}円`],
+  ['老後の手取り(年平均)',man(avg),`${ret.length?ret[0].age:'-'}〜${R.life}歳`],
+  ['拠出・購入の総額',man(tc),`税メリット ${man(tb)}`],
+  ['資産残高のピーク',man(pk.bal),`${pk.age}歳(${pk.year}年)`]].map(([a,b,c])=>`<div class="kpi"><span>${a}</span><b>${b}</b><small>${c}</small></div>`).join('');
+ cmpTable();yearTable();drawChart();foot();}
+
+function penInfo(){const el=document.getElementById('penInfo');if(!el)return;const P=R.P;
+ el.innerHTML=`基礎年金に算入 <b>${P.kisoW.toFixed(1)}</b>/480月 → 年 <b>${Math.round(P.kiso).toLocaleString()}</b>円<br>
+ 厚生年金 <b>${P.koseiM}</b>月 → 報酬比例 年 <b>${Math.round(P.hirei).toLocaleString()}</b>円${P.keika>0?`+経過的加算 <b>${Math.round(P.keika).toLocaleString()}</b>円`:''}<br>
+ 付加年金 <b>${P.fukaM}</b>月 → 年 <b>${P.fukaAnnual.toLocaleString()}</b>円 ／ 受給開始による増減 基礎×${P.fK.toFixed(3)}・厚生×${P.fKo.toFixed(3)}${P.haguRed>0?`<br>はぐくみ加入で報酬比例が年 <b>${Math.round(P.haguRed).toLocaleString()}</b>円減`:''}`;}
+
+function cmpTable(){const col=g=>css((GROUPS.find(x=>x[0]===g)||GROUPS[0])[2]);
+ const tr=R.rows.map(r=>`<tr><td><span class="sw" style="background:${col(r.group)}"></span>${esc(r.label)}<span class="nt">${esc(r.note)}</span></td>
+  <td>${r.contrib?man(r.contrib):'—'}</td><td class="${r.benefit>0?'pos':''}">${r.benefit?man(r.benefit):'—'}</td><td>${man(r.gross)}</td><td class="${r.rtax>0?'neg':''}">${r.rtax?man(r.rtax):'—'}</td>
+  <td>${man(r.net)}</td><td>${r.irr==null?'—':(r.irr*100).toFixed(2)+'%'}</td></tr>`).join('');
+ const s=k=>R.rows.reduce((a,r)=>a+r[k],0);
+ document.getElementById('cmp').innerHTML=`<thead><tr><th>制度</th><th>拠出・購入</th><th>税メリット</th><th>受取(税引前)</th><th>受取時の税</th><th>正味の増減</th><th>年利換算</th></tr></thead><tbody>${tr}
+  <tr class="sum"><td>合計</td><td>${man(s('contrib'))}</td><td>${man(s('benefit'))}</td><td>${man(s('gross'))}</td><td>${man(s('rtax'))}</td><td>${man(s('net'))}</td><td></td></tr></tbody>`;}
+
+function yearTable(){document.getElementById('yt').innerHTML=`<thead><tr><th>年齢</th><th>年</th><th>拠出・購入</th><th>受取(税引前)</th><th>税(+)/節税(−)</th><th>手取りの増減</th><th>資産残高</th></tr></thead><tbody>`+
+ R.yr.map(y=>`<tr${y.age===R.curAge?' style="background:var(--accent-soft)"':''}><td>${y.age}歳</td><td>${y.year}</td><td>${manN(y.contrib)}</td><td>${manN(y.gross)}</td><td class="${y.tax-y.shaho>0?'neg':'pos'}">${manN(y.tax-y.shaho)}</td><td>${manN(y.cf)}</td><td>${manN(y.bal)}</td></tr>`).join('')+'</tbody><caption style="caption-side:bottom;text-align:left;font-size:11px;color:var(--muted);padding-top:6px">単位:万円</caption>';}
+
+function drawChart(){if(typeof Chart==='undefined'){document.querySelector('.chartbox').innerHTML='<p class="note">グラフ用ライブラリを読み込めませんでした。表で結果を確認できます。</p>';return;}
+ const labels=R.ages.map(a=>a+'歳'),ink=css('--muted'),grid=css('--line');let ds=[];
+ if(tab==='cf'){GROUPS.forEach(([g,l,c])=>{const ps=R.prods.filter(p=>p.group===g);const hs=R.prods.filter(p=>p.key==='hagu');
+    const d=R.ages.map((_,i)=>{let v=ps.reduce((s,p)=>s+R.gross(p)(i)-p.pubRed[i],0);if(g==='pub')v+=hs.reduce((s,p)=>s+p.pubRed[i],0);return v/10000;});
+    if(d.some(v=>Math.abs(v)>0.01))ds.push({label:l,data:d,backgroundColor:css(c),stack:'s'});});
+  ds.push({label:'節税・保険料軽減',data:R.yr.map(y=>y.save/10000),backgroundColor:css('--c-save'),stack:'s'});
+  ds.push({label:'拠出・購入',data:R.yr.map(y=>-y.contrib/10000),backgroundColor:css('--c-contrib'),stack:'s'});
+  ds.push({label:'受取時の税',data:R.yr.map(y=>-Math.max(0,y.rtax)/10000),backgroundColor:css('--c-tax'),stack:'s'});
+  ds=ds.filter(d=>d.data.some(v=>Math.abs(v)>0.01));}
+ else{GROUPS.forEach(([g,l,c])=>{const d=R.ages.map((_,i)=>R.prods.filter(p=>p.group===g).reduce((s,p)=>s+p.bal[i],0)/10000);
+   if(d.some(v=>v>0.01)){const col=css(c);ds.push({label:l,data:d,borderColor:col,backgroundColor:col+'55',fill:true,pointRadius:0,borderWidth:1.5,tension:.2});}});}
+ if(chart)chart.destroy();
+ chart=new Chart(document.getElementById('chart'),{type:tab==='cf'?'bar':'line',data:{labels,datasets:ds},
+  options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},
+   plugins:{legend:{position:'bottom',labels:{color:ink,boxWidth:10,boxHeight:10,font:{size:11}}},
+    tooltip:{callbacks:{title:it=>`${R.ages[it[0].dataIndex]}歳(${R.bY+R.ages[it[0].dataIndex]}年)`,label:c=>`${c.dataset.label}: ${c.parsed.y.toFixed(1)}万円`},filter:c=>Math.abs(c.parsed.y)>0.05}},
+   scales:{x:{stacked:true,ticks:{color:ink,maxRotation:0,autoSkipPadding:10,font:{size:11}},grid:{display:false}},
+    y:{stacked:true,ticks:{color:ink,font:{size:11},callback:v=>v+'万'},grid:{color:grid}}}}});}
+
+function foot(){document.getElementById('foot').innerHTML=`<b>前提</b>:金額は名目・2026年度の制度値で固定(物価・賃金スライドなし)。老齢基礎年金 満額 月70,608円(令和8年度)、付加年金 200円×納付月、報酬比例は平均標準報酬額×5.481/1000(2003年3月以前は7.125/1000)で再評価率は省略。繰上げ月0.4%減・繰下げ月0.7%増。iDeCo上限は2026年12月分からの新上限(第1号7.5万・第2号6.2万・公務員5.4万・第3号2.3万)。NISAは年360万・生涯1,800万円、売却後の枠の復活は省略。小規模企業共済は中小機構の掛金1万円あたり給付表の目安を補間。所得税(復興税込み)・住民税10%を概算し、公的年金等控除・退職所得控除(iDeCo一時金は10年ルール、退職金は19年ルール)・個人年金保険料控除を反映。国債利子と償還差益は20.315%の分離課税。社会保険料(健保・介護・国保)の増減は、はぐくみの軽減分以外は計算していません。<br>
+ <b>国債の利率</b>:<a href="https://www.mof.go.jp/jgbs/individual/kojinmuke/houdouhappyou/p20261007.pdf" target="_blank" rel="noopener">財務省 個人向け国債10月募集の発行条件</a>・<a href="https://www.mof.go.jp/jgbs/individual/kojinmuke/shinmadohan/issue/ten/r08/October.html" target="_blank" rel="noopener">新窓販国債10年 10月債</a>・<a href="https://www.mof.go.jp/jgbs/individual/kojinmuke/shinmadohan/issue/two/r08/October.html" target="_blank" rel="noopener">新窓販国債2年 10月債</a>。年金額:<a href="https://www.nenkin.go.jp/oshirase/taisetu/kojin/2026/202604/0401.html" target="_blank" rel="noopener">日本年金機構 令和8年度の年金額</a>。入力値はこの端末のブラウザにだけ保存され、外部には送信されません。別の端末へ移すときは「入力を保存(JSON)」を使ってください。結果は概算で、投資・税務の助言ではありません。`;}
+
+/* ---- イベント ---- */
+let timer=0;const schedule=()=>{clearTimeout(timer);timer=setTimeout(recompute,120);};
+const form=document.getElementById('form');
+function readEl(el){const t=el.dataset.t;return t==='num'?(el.value===''?0:+el.value):t==='chk'?el.checked:el.value;}
+form.addEventListener('input',e=>{const el=e.target;if(!el.dataset||!el.dataset.p)return;if(el.tagName==='SELECT'||el.type==='checkbox')return;setP(S,el.dataset.p,readEl(el));
+ if(/^ideco\.|^basic\.corp/.test(el.dataset.p)===false&&/^(bonds\.\d+\.(rate|price|buyYear|redeemYear))/.test(el.dataset.p)){const i=+el.dataset.p.split('.')[1];const x=S.bonds[i],yrs=num(x.redeemYear)-num(x.buyYear);const c=el.closest('.row')?.querySelector('.calc');if(c)c.textContent=`最終利回り(単利・税引前) ${(yrs>0&&num(x.price)>0?(num(x.rate)+(100-num(x.price))/yrs)/num(x.price)*100:0).toFixed(3)}%`;}
+ schedule();});
+form.addEventListener('change',e=>{const el=e.target;if(!el.dataset||!el.dataset.p)return;if(!(el.tagName==='SELECT'||el.type==='checkbox'||el.type==='month'))return;
+ const p=el.dataset.p,v=readEl(el);setP(S,p,v);
+ const m=p.match(/^bonds\.(\d+)\.type$/);if(m){const x=S.bonds[+m[1]],t=BOND_TYPES[v];x.rate=t.rate;x.price=t.price;x.redeemYear=num(x.buyYear)+t.term;if(t.cur==='USD'&&(x.face||0)>1e6)x.face=10000;if(t.cur!=='USD'&&(x.face||0)<10000)x.face=1000000;}
+ const mi=p.match(/^ins\.(\d+)\.cur$/);if(mi){const x=S.ins[+mi[1]];if(v==='USD'){x.premium=Math.round(num(x.premium)/150);x.recvAmount=Math.round(num(x.recvAmount)/150);}else{x.premium=Math.round(num(x.premium)*num(x.fxPay||150));x.recvAmount=Math.round(num(x.recvAmount)*num(x.fxRecv||150));}}
+ if(el.type!=='month'||/^basic\./.test(p))renderForm();recompute();});
+form.addEventListener('click',e=>{const b=e.target.closest('button[data-act]');if(!b)return;const a=b.dataset.act,i=+b.dataset.i;
+ if(a==='add-hist'){const last=S.hist[S.hist.length-1];S.hist.push({type:'kokumin1',from:last?.to||'2026-11',to:last?.to||'2030-03',sal:300000,fuka:false});}
+ if(a==='del-hist')S.hist.splice(i,1);
+ if(a==='add-bond')S.bonds.push({type:'kf5',buyYear:NOW.y,redeemYear:NOW.y+5,face:1000000,rate:BOND_TYPES.kf5.rate,price:100,fxBuy:150,fxEnd:150});
+ if(a==='del-bond')S.bonds.splice(i,1);
+ if(a==='add-ins')S.ins.push({name:`年金保険${S.ins.length+1}`,cur:'JPY',payType:'monthly',premium:10000,payStart:Math.max(20,R?R.curAge:30),payEnd:60,recvType:'annuity',recvStart:65,recvYears:10,recvAmount:400000,fxPay:150,fxRecv:150,deduct:true});
+ if(a==='del-ins')S.ins.splice(i,1);
+ if(a==='reset'){S=defaults();}
+ renderForm();recompute();});
+document.getElementById('tab-cf').onclick=()=>{tab='cf';syncTabs();drawChart();};
+document.getElementById('tab-bal').onclick=()=>{tab='bal';syncTabs();drawChart();};
+function syncTabs(){document.getElementById('tab-cf').setAttribute('aria-pressed',tab==='cf');document.getElementById('tab-bal').setAttribute('aria-pressed',tab==='bal');}
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{cmpTable();drawChart();});}catch(e){}
+new MutationObserver(()=>{if(R){cmpTable();drawChart();}}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+renderForm();recompute();
+</script>
+
+<script>
+/* ===== 単体アプリ用:保存・読込・インストール・オフライン ===== */
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>{t.hidden=true;},2600);}
+document.getElementById('btn-export').addEventListener('click',()=>{
+  const blob=new Blob([JSON.stringify({app:'nenkin-sim',version:1,savedAt:new Date().toISOString(),data:S},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  const d=new Date();a.download=`nenkin-sim_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('入力内容をファイルに保存しました');});
+const fi=document.getElementById('file-import');
+document.getElementById('btn-import').addEventListener('click',()=>fi.click());
+fi.addEventListener('change',async()=>{const f=fi.files[0];if(!f)return;
+  try{const j=JSON.parse(await f.text());const s=j&&j.data?j.data:j;const d=defaults();
+    for(const k of Object.keys(d)){if(Array.isArray(d[k]))d[k]=Array.isArray(s[k])?s[k]:d[k];else d[k]=Object.assign({},d[k],s[k]||{});}
+    S=d;renderForm();recompute();toast('ファイルから読み込みました');}
+  catch(e){toast('読み込めませんでした。このツールで保存したJSONファイルを選んでください');}
+  fi.value='';});
+let deferredPrompt=null;const ib=document.getElementById('btn-install');
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;ib.hidden=false;});
+ib.addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;ib.hidden=true;});
+window.addEventListener('appinstalled',()=>{ib.hidden=true;toast('アプリとして追加しました');});
+if('serviceWorker' in navigator&&location.protocol!=='file:'){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});}
+</script>
+</body>
+</html>

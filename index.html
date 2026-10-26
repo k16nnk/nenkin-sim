@@ -10,7 +10,22 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="年金シミュ">
-<title>年金・資産運用シミュレーター</title>
+<title>年金・資産運用シミュレーター|iDeCo・NISA・公的年金をまとめて比較</title>
+<link rel="canonical" href="https://k16nnk.github.io/nenkin-sim/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:site_name" content="年金・資産運用シミュレーター">
+<meta property="og:title" content="年金・資産運用シミュレーター">
+<meta property="og:description" content="公的年金・iDeCo・NISA・小規模企業共済・はぐくみ企業年金・付加年金・国債・年金保険を、受取時の税まで含めて一つの年表で比較。無料・登録不要、入力は端末内だけに保存。">
+<meta property="og:url" content="https://k16nnk.github.io/nenkin-sim/">
+<meta property="og:image" content="https://k16nnk.github.io/nenkin-sim/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="年金・資産運用シミュレーター。8つの制度を受取時の税まで含めて一つの年表で比較する">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="年金・資産運用シミュレーター">
+<meta name="twitter:description" content="iDeCo・NISA・公的年金など8制度を、受取時の税まで含めて一つの年表で比較。無料・登録不要。">
+<meta name="twitter:image" content="https://k16nnk.github.io/nenkin-sim/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Zen+Old+Mincho:wght@700&family=IBM+Plex+Mono:wght@500&display=swap">
@@ -127,6 +142,11 @@ img{max-width:100%}
 header.top .tools{display:flex;gap:6px;flex-wrap:wrap}
 header.top .tools button{font-size:12.5px;padding:5px 10px}
 header.top .tools button.primary{background:var(--accent);color:var(--paper);border-color:var(--accent)}
+.intro{display:flex;flex-direction:column;gap:6px;margin:-4px 0 18px;max-width:880px}
+.intro p{margin:0;font-size:13px;line-height:1.7}
+.intro a.jump{display:none;margin-left:6px;color:var(--accent);font-weight:700;white-space:nowrap}
+@media (max-width:900px){.intro a.jump{display:inline}}
+.intro p.disc{font-size:12px;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
 .toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:8px 14px;border-radius:6px;font-size:13px;z-index:10}
 </style>
 </head>
@@ -144,9 +164,13 @@ header.top .tools button.primary{background:var(--accent);color:var(--paper);bor
     </div>
     <div class="toast" id="toast" hidden></div>
   </header>
+  <div class="intro">
+    <p><b>使い方</b>:最初は例の値が入っています。入力欄を自分の状況に書き換えると、比較表とグラフがすぐに変わります。使わない制度は「使う」のチェックを外してください。<a class="jump" href="#results">結果へ移動</a></p>
+    <p class="disc">個人が作った概算ツールです。制度値は2026年10月時点で固定しており、結果は投資・税務の助言ではありません。実際の判断は、日本年金機構・iDeCo公式サイト・金融機関などの公式情報で確認してください。</p>
+  </div>
   <div class="app">
     <form class="inputs" id="form" autocomplete="off"></form>
-    <section class="results" aria-live="polite">
+    <section class="results" id="results" aria-live="polite">
       <div class="warn" id="warn"></div>
       <div class="kpis" id="kpis"></div>
       <div class="panel">

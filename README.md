@@ -6,6 +6,9 @@
 - `index.html` … アプリ本体(計算エンジンとUI)
 - `vendor/chart.umd.js` … グラフ描画(Chart.js 4.4.1、MITライセンス)
 - `manifest.webmanifest` / `sw.js` / `icons/` … ホーム画面追加とオフライン動作用
+- `og.png` … SNSやLINEでURLを貼ったときに出るプレビュー画像(1200×630)
+
+`vendor/` と `icons/` のフォルダも必ず一緒にアップロードする。抜けるとグラフが出ず、オフライン動作とアイコンも壊れる。
 
 ## 公開方法(GitHub Pages)
 1. GitHubで新しいリポジトリを作る(例:`nenkin-sim`)

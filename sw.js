@@ -1,5 +1,5 @@
 /* オフライン対応:アプリ本体は先にキャッシュ、フォントは使ったものを保存 */
-const VERSION = 'nenkin-sim-2026-10-11';
+const VERSION = 'nenkin-sim-2026-10-27';
 const SHELL = ['./', 'index.html', 'vendor/chart.umd.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];
 
